@@ -1,0 +1,53 @@
+name: Deploy Storage Account
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - 'deployments/**'
+      - 'modules/**'
+      - 'environments/**'
+  workflow_dispatch:
+
+jobs:
+  deploy-dev:
+    name: Deploy to DEV
+    runs-on: ubuntu-latest
+    environment: dev
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: What-If (Preview Changes)
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az deployment group what-if \
+              --resource-group rg-iac-dev \
+              --template-file deployments/storage.bicep \
+              --parameters environments/dev/storage.parameters.json
+
+      - name: Deploy to DEV
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az deployment group create \
+              --resource-group rg-iac-dev \
+              --template-file deployments/storage.bicep \
+              --parameters environments/dev/storage.parameters.json \
+              --name "storage-$(date +%Y%m%d-%H%M%S)"
