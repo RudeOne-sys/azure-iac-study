@@ -8,11 +8,21 @@ on:
       - 'deployments/**'
       - 'modules/**'
       - 'environments/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'deployments/**'
+      - 'modules/**'
+      - 'environments/**'
   workflow_dispatch:
 
 jobs:
-  deploy-dev:
-    name: Deploy to DEV
+  # ─────────────────────────────────────────
+  # JOB 1: Validate — runs on every trigger
+  # ─────────────────────────────────────────
+  validate:
+    name: Validate Bicep Templates
     runs-on: ubuntu-latest
     environment: dev
 
@@ -31,7 +41,14 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: What-If (Preview Changes)
+      - name: Lint Bicep templates
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az bicep build --file deployments/storage.bicep
+
+      - name: What-If DEV
         uses: azure/cli@v2
         with:
           azcliversion: latest
@@ -40,6 +57,31 @@ jobs:
               --resource-group rg-iac-dev \
               --template-file deployments/storage.bicep \
               --parameters environments/dev/storage.parameters.json
+
+  # ─────────────────────────────────────────
+  # JOB 2: Deploy DEV — only on push to dev
+  # ─────────────────────────────────────────
+  deploy-dev:
+    name: Deploy to DEV
+    runs-on: ubuntu-latest
+    environment: dev
+    needs: validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Deploy to DEV
         uses: azure/cli@v2
@@ -51,3 +93,71 @@ jobs:
               --template-file deployments/storage.bicep \
               --parameters environments/dev/storage.parameters.json \
               --name "storage-$(date +%Y%m%d-%H%M%S)"
+
+      - name: Show DEV Outputs
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az storage account show \
+              --name strudeonedev001 \
+              --resource-group rg-iac-dev \
+              --query '{name:name, sku:sku.name, location:location, tags:tags}' \
+              --output table
+
+  # ─────────────────────────────────────────
+  # JOB 3: Deploy PROD — only on PR to main
+  # ─────────────────────────────────────────
+  deploy-prod:
+    name: Deploy to PROD
+    runs-on: ubuntu-latest
+    environment: prod
+    needs: validate
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: What-If PROD
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az deployment group what-if \
+              --resource-group rg-iac-prod \
+              --template-file deployments/storage.bicep \
+              --parameters environments/prod/storage.parameters.json
+
+      - name: Deploy to PROD
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az deployment group create \
+              --resource-group rg-iac-prod \
+              --template-file deployments/storage.bicep \
+              --parameters environments/prod/storage.parameters.json \
+              --name "storage-$(date +%Y%m%d-%H%M%S)"
+
+      - name: Show PROD Outputs
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az storage account show \
+              --name strudeoneprod001 \
+              --resource-group rg-iac-prod \
+              --query '{name:name, sku:sku.name, location:location, tags:tags}' \
+              --output table
