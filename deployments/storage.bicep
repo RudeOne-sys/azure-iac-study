@@ -72,15 +72,6 @@ resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01'
   }
 }
 
-// Conditional - advanced threat protection only in prod
-resource threatProtection 'Microsoft.Security/advancedThreatProtectionSettings@2019-01-01' = if (environment == 'prod') {
-  name: 'current'
-  scope: storageAccount
-  properties: {
-    isEnabled: true
-  }
-}
-
 // ── Outputs ────────────────────────────────────────────────
 output storageAccountId string = storageAccount.id
 output storageAccountName string = storageAccount.name
