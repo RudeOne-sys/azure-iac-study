@@ -16,7 +16,7 @@ param sku string = 'Standard_LRS'
 
 // Reference the reusable module
 module storage '../modules/storage/storageAccount.bicep' = {
-  name: 'storageDeployment'
+  name: 'storageDeployment-${uniqueString(resourceGroup().id)}'
   params: {
     storageAccountName: storageAccountName
     environment: environment
