@@ -49,6 +49,7 @@ jobs:
           inlineScript: |
             az bicep build --file deployments/storage.bicep
             az bicep build --file deployments/compute.bicep
+            az bicep build --file deployments/hubSpoke.bicep
 
       - name: What-If DEV Storage
         uses: azure/cli@v2
@@ -73,6 +74,19 @@ jobs:
               --resource-group rg-iac-dev \
               --template-file deployments/compute.bicep \
               --parameters environments/dev/compute.parameters.json \
+              --mode Incremental \
+              --no-pretty-print
+
+      - name: What-If DEV Hub & Spoke
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+           echo "========== HUB SPOKE WHAT-IF =========="  
+           az deployment group what-if \
+              --resource-group rg-iac-dev \
+              --template-file deployments/hubSpoke.bicep \
+              --parameters environments/dev/hubSpoke.parameters.json \
               --mode Incremental \
               --no-pretty-print
 
@@ -125,6 +139,18 @@ jobs:
               --mode Incremental \
               --name "compute-$(date +%Y%m%d-%H%M%S)"
 
+      - name: Deploy Hub & Spoke to DEV
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az deployment group create \
+              --resource-group rg-iac-dev \
+              --template-file deployments/hubSpoke.bicep \
+              --parameters environments/dev/hubSpoke.parameters.json \
+              --mode Incremental \
+              --name "hubspoke-$(date +%Y%m%d-%H%M%S)"        
+
       - name: Show DEV Outputs
         uses: azure/cli@v2
         with:
@@ -170,6 +196,7 @@ jobs:
               --resource-group rg-iac-prod \
               --template-file deployments/storage.bicep \
               --parameters environments/prod/storage.parameters.json
+              --mode Incremental
       
       - name: What-If Compute PROD
         uses: azure/cli@v2
@@ -180,6 +207,18 @@ jobs:
               --resource-group rg-iac-prod \
               --template-file deployments/compute.bicep \
               --parameters environments/prod/compute.parameters.json
+              --mode Incremental
+      
+      - name: What-If Hub & Spoke PROD
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az deployment group what-if \
+              --resource-group rg-iac-prod \
+              --template-file deployments/hubSpoke.bicep \
+              --parameters environments/prod/hubSpoke.parameters.json \
+              --mode Incremental        
 
       - name: Deploy to PROD
         uses: azure/cli@v2
@@ -203,7 +242,19 @@ jobs:
               --template-file deployments/compute.bicep \
               --parameters environments/prod/compute.parameters.json \
               --mode Incremental \
-              --name "compute-$(date +%Y%m%d-%H%M%S)"        
+              --name "compute-$(date +%Y%m%d-%H%M%S)"    
+              
+      - name: Deploy Hub & Spoke to PROD
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az deployment group create \
+              --resource-group rg-iac-prod \
+              --template-file deployments/hubSpoke.bicep \
+              --parameters environments/prod/hubSpoke.parameters.json \
+              --mode Incremental \
+              --name "hubspoke-$(date +%Y%m%d-%H%M%S)"        
 
       - name: Show PROD Outputs
         continue-on-error: true
