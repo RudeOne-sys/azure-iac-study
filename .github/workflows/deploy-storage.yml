@@ -50,15 +50,31 @@ jobs:
             az bicep build --file deployments/storage.bicep
             az bicep build --file deployments/compute.bicep
 
-      - name: What-If DEV
+      - name: What-If DEV Storage
         uses: azure/cli@v2
         with:
           azcliversion: latest
           inlineScript: |
+            echo "========== STORAGE WHAT-IF =========="
             az deployment group what-if \
               --resource-group rg-iac-dev \
               --template-file deployments/storage.bicep \
-              --parameters environments/dev/storage.parameters.json
+              --parameters environments/dev/storage.parameters.json \
+              --mode Incremental \
+              --no-pretty-print
+
+      - name: What-If DEV Compute
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            echo "========== COMPUTE WHAT-IF =========="
+            az deployment group what-if \
+              --resource-group rg-iac-dev \
+              --template-file deployments/compute.bicep \
+              --parameters environments/dev/compute.parameters.json \
+              --mode Incremental \
+              --no-pretty-print
 
   # ─────────────────────────────────────────
   # JOB 2: Deploy DEV — only on push to dev
@@ -94,6 +110,7 @@ jobs:
               --resource-group rg-iac-dev \
               --template-file deployments/storage.bicep \
               --parameters environments/dev/storage.parameters.json \
+              --mode Incremental \
               --name "storage-$(date +%Y%m%d-%H%M%S)"
 
       - name: Deploy Compute to DEV
@@ -105,6 +122,7 @@ jobs:
               --resource-group rg-iac-dev \
               --template-file deployments/compute.bicep \
               --parameters environments/dev/compute.parameters.json \
+              --mode Incremental \
               --name "compute-$(date +%Y%m%d-%H%M%S)"
 
       - name: Show DEV Outputs
@@ -172,6 +190,7 @@ jobs:
               --resource-group rg-iac-prod \
               --template-file deployments/storage.bicep \
               --parameters environments/prod/storage.parameters.json \
+              --mode Incremental \
               --name "storage-$(date +%Y%m%d-%H%M%S)"
 
       - name: Deploy Compute to PROD
@@ -183,6 +202,7 @@ jobs:
               --resource-group rg-iac-prod \
               --template-file deployments/compute.bicep \
               --parameters environments/prod/compute.parameters.json \
+              --mode Incremental \
               --name "compute-$(date +%Y%m%d-%H%M%S)"        
 
       - name: Show PROD Outputs
