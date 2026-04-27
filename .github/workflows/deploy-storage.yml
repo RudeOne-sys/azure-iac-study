@@ -16,7 +16,8 @@ on:
       - 'modules/**'
       - 'environments/**'
   workflow_dispatch:
-
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  
 jobs:
   # ─────────────────────────────────────────
   # JOB 1: Validate — runs on every trigger
