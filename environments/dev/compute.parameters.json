@@ -1,0 +1,12 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environment": {
+      "value": "dev"
+    },
+    "adminSshKey": {
+      "value": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC3VsmGfhbrAGEUfkxLIUm0CTFGtxzoQ629eM/jkFjCg9ZJDVeNnn8FfkAEDibRLgZowJPIOZb0NvceewS3xF/6+goNIheRyiS8R5QvdJms6celzEAUl2KdhqH8o6ooM9J/svvhPgWkrzUvQJuLh8PlnzaeC8bgfjLqUUc/b8DHnJKPuoVgwF4QgwKAcA55qWjfSbEJSJWqfAzDoNVDhYQeLgdgRnR9ex2CjgQPUSXADeG9dx4A4qMDw5YKWsxIVCN+DseRIAZGetRIgR2tMNTyyDJAwdQ+7oZR6lOG6XUkNcBpq+uAfOMqvK/s8RXPdRDCVmT2NZAn1ruUCU9ug72GriNCIXm8+9t4TrguChxccYZSf2su/KsID3FSAhoEPUnA5TPmIb3ljy+KPbI0F0rg6z5T8TBb3trJFlVHIBmM9zxMRAoy4Pb7JyHiCLglrJz/3R689nd/Nx70IINttPtrXbGIqsfQ1ier2LmmB8JllADdzgL+SExAYdSALpdyaK2PpnMBqGn3G0E5kR1NXqV4C65ehEeqowltGo+ofLpzPzdRhcbEEH7BlZRAiJxJ2YbUM9xaCYtxVxowloAExhEupqJmJWO8rYOzWlFY4CKZveQ3kV7jKtRanUXpyutxo1pbvm7xUg6EdConWzH3kn4umo9FpHEPMhNQ/4E2rrkDiQ== rudeone@Roans-MacBook-Pro.local"
+    }
+  }
+}
