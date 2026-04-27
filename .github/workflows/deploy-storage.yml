@@ -152,6 +152,7 @@ jobs:
               --name "storage-$(date +%Y%m%d-%H%M%S)"
 
       - name: Show PROD Outputs
+        continue-on-error: true
         uses: azure/cli@v2
         with:
           azcliversion: latest
