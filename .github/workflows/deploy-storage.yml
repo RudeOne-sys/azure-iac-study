@@ -16,7 +16,8 @@ on:
       - 'modules/**'
       - 'environments/**'
   workflow_dispatch:
-
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  
 jobs:
   # ─────────────────────────────────────────
   # JOB 1: Validate — runs on every trigger
@@ -47,6 +48,7 @@ jobs:
           azcliversion: latest
           inlineScript: |
             az bicep build --file deployments/storage.bicep
+            az bicep build --file deployments/compute.bicep
 
       - name: What-If DEV
         uses: azure/cli@v2
@@ -94,6 +96,17 @@ jobs:
               --parameters environments/dev/storage.parameters.json \
               --name "storage-$(date +%Y%m%d-%H%M%S)"
 
+      - name: Deploy Compute to DEV
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az deployment group create \
+              --resource-group rg-iac-dev \
+              --template-file deployments/compute.bicep \
+              --parameters environments/dev/compute.parameters.json \
+              --name "compute-$(date +%Y%m%d-%H%M%S)"
+
       - name: Show DEV Outputs
         uses: azure/cli@v2
         with:
@@ -139,6 +152,16 @@ jobs:
               --resource-group rg-iac-prod \
               --template-file deployments/storage.bicep \
               --parameters environments/prod/storage.parameters.json
+      
+      - name: What-If Compute PROD
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az deployment group what-if \
+              --resource-group rg-iac-prod \
+              --template-file deployments/compute.bicep \
+              --parameters environments/prod/compute.parameters.json
 
       - name: Deploy to PROD
         uses: azure/cli@v2
@@ -150,6 +173,17 @@ jobs:
               --template-file deployments/storage.bicep \
               --parameters environments/prod/storage.parameters.json \
               --name "storage-$(date +%Y%m%d-%H%M%S)"
+
+      - name: Deploy Compute to PROD
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az deployment group create \
+              --resource-group rg-iac-prod \
+              --template-file deployments/compute.bicep \
+              --parameters environments/prod/compute.parameters.json \
+              --name "compute-$(date +%Y%m%d-%H%M%S)"        
 
       - name: Show PROD Outputs
         continue-on-error: true
