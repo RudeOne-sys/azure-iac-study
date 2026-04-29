@@ -208,7 +208,7 @@ jobs:
             az deployment group what-if \
               --resource-group rg-iac-prod \
               --template-file deployments/storage.bicep \
-              --parameters environments/prod/storage.parameters.json
+              --parameters environments/prod/storage.parameters.json \
               --mode Incremental
       
       - name: What-If Compute PROD
@@ -219,7 +219,7 @@ jobs:
             az deployment group what-if \
               --resource-group rg-iac-prod \
               --template-file deployments/compute.bicep \
-              --parameters environments/prod/compute.parameters.json
+              --parameters environments/prod/compute.parameters.json \
               --mode Incremental
       
       - name: What-If Hub & Spoke PROD
