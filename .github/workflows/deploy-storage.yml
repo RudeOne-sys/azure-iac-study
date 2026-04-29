@@ -50,6 +50,7 @@ jobs:
             az bicep build --file deployments/storage.bicep
             az bicep build --file deployments/compute.bicep
             az bicep build --file deployments/hubSpoke.bicep
+            az bicep build --file deployments/nsg.bicep
 
       - name: What-If DEV Storage
         uses: azure/cli@v2
@@ -149,7 +150,19 @@ jobs:
               --template-file deployments/hubSpoke.bicep \
               --parameters environments/dev/hubSpoke.parameters.json \
               --mode Incremental \
-              --name "hubspoke-$(date +%Y%m%d-%H%M%S)"        
+              --name "hubspoke-$(date +%Y%m%d-%H%M%S)"
+              
+      - name: Deploy NSGs & ASGs to DEV
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az deployment group create \
+              --resource-group rg-iac-dev \
+              --template-file deployments/nsg.bicep \
+              --parameters environments/dev/nsg.parameters.json \
+              --mode Incremental \
+              --name "nsg-$(date +%Y%m%d-%H%M%S)"        
 
       - name: Show DEV Outputs
         uses: azure/cli@v2
@@ -195,7 +208,7 @@ jobs:
             az deployment group what-if \
               --resource-group rg-iac-prod \
               --template-file deployments/storage.bicep \
-              --parameters environments/prod/storage.parameters.json
+              --parameters environments/prod/storage.parameters.json \
               --mode Incremental
       
       - name: What-If Compute PROD
@@ -206,7 +219,7 @@ jobs:
             az deployment group what-if \
               --resource-group rg-iac-prod \
               --template-file deployments/compute.bicep \
-              --parameters environments/prod/compute.parameters.json
+              --parameters environments/prod/compute.parameters.json \
               --mode Incremental
       
       - name: What-If Hub & Spoke PROD
@@ -254,7 +267,30 @@ jobs:
               --template-file deployments/hubSpoke.bicep \
               --parameters environments/prod/hubSpoke.parameters.json \
               --mode Incremental \
-              --name "hubspoke-$(date +%Y%m%d-%H%M%S)"        
+              --name "hubspoke-$(date +%Y%m%d-%H%M%S)"
+              
+      - name: What-If NSGs & ASGs PROD
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az deployment group what-if \
+              --resource-group rg-iac-prod \
+              --template-file deployments/nsg.bicep \
+              --parameters environments/prod/nsg.parameters.json \
+              --mode Incremental
+
+      - name: Deploy NSGs & ASGs to PROD
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az deployment group create \
+              --resource-group rg-iac-prod \
+              --template-file deployments/nsg.bicep \
+              --parameters environments/prod/nsg.parameters.json \
+              --mode Incremental \
+              --name "nsg-$(date +%Y%m%d-%H%M%S)"        
 
       - name: Show PROD Outputs
         continue-on-error: true
