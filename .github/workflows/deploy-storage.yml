@@ -51,6 +51,7 @@ jobs:
             az bicep build --file deployments/compute.bicep
             az bicep build --file deployments/hubSpoke.bicep
             az bicep build --file deployments/nsg.bicep
+            az bicep build --file deployments/firewall.bicep
 
       - name: What-If DEV Storage
         uses: azure/cli@v2
@@ -162,7 +163,19 @@ jobs:
               --template-file deployments/nsg.bicep \
               --parameters environments/dev/nsg.parameters.json \
               --mode Incremental \
-              --name "nsg-$(date +%Y%m%d-%H%M%S)"        
+              --name "nsg-$(date +%Y%m%d-%H%M%S)" 
+              
+      - name: Deploy Firewall to DEV
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az deployment group create \
+              --resource-group rg-iac-dev \
+              --template-file deployments/firewall.bicep \
+              --parameters environments/dev/firewall.parameters.json \
+              --mode Incremental \
+              --name "firewall-$(date +%Y%m%d-%H%M%S)"        
 
       - name: Show DEV Outputs
         uses: azure/cli@v2
@@ -231,6 +244,17 @@ jobs:
               --resource-group rg-iac-prod \
               --template-file deployments/hubSpoke.bicep \
               --parameters environments/prod/hubSpoke.parameters.json \
+              --mode Incremental
+              
+      - name: What-If Firewall PROD
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az deployment group what-if \
+              --resource-group rg-iac-prod \
+              --template-file deployments/firewall.bicep \
+              --parameters environments/prod/firewall.parameters.json \
               --mode Incremental        
 
       - name: Deploy to PROD
@@ -290,7 +314,19 @@ jobs:
               --template-file deployments/nsg.bicep \
               --parameters environments/prod/nsg.parameters.json \
               --mode Incremental \
-              --name "nsg-$(date +%Y%m%d-%H%M%S)"        
+              --name "nsg-$(date +%Y%m%d-%H%M%S)"  
+              
+      - name: Deploy Firewall to PROD
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az deployment group create \
+              --resource-group rg-iac-prod \
+              --template-file deployments/firewall.bicep \
+              --parameters environments/prod/firewall.parameters.json \
+              --mode Incremental \
+              --name "firewall-$(date +%Y%m%d-%H%M%S)"        
 
       - name: Show PROD Outputs
         continue-on-error: true
