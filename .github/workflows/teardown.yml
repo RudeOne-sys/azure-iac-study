@@ -14,6 +14,8 @@ on:
       confirm:
         description: 'Type CONFIRM to proceed'
         required: true
+  schedule:
+        - cron: '0 22 * * *'  # Runs daily at 22:00 UTC (00:00 SAST)  
 
 jobs:
   teardown:
