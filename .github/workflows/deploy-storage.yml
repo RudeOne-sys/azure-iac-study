@@ -52,6 +52,7 @@ jobs:
             az bicep build --file deployments/hubSpoke.bicep
             az bicep build --file deployments/nsg.bicep
             az bicep build --file deployments/firewall.bicep
+            az bicep build --file deployments/loadBalancing.bicep
 
       - name: What-If DEV Storage
         uses: azure/cli@v2
@@ -175,7 +176,19 @@ jobs:
               --template-file deployments/firewall.bicep \
               --parameters environments/dev/firewall.parameters.json \
               --mode Incremental \
-              --name "firewall-$(date +%Y%m%d-%H%M%S)"        
+              --name "firewall-$(date +%Y%m%d-%H%M%S)"     
+              
+      - name: Deploy Load Balancing to DEV
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az deployment group create \
+              --resource-group rg-iac-dev \
+              --template-file deployments/loadBalancing.bicep \
+              --parameters environments/dev/loadBalancing.parameters.json \
+              --mode Incremental \
+              --name "lb-$(date +%Y%m%d-%H%M%S)"        
 
       - name: Show DEV Outputs
         uses: azure/cli@v2
@@ -255,6 +268,17 @@ jobs:
               --resource-group rg-iac-prod \
               --template-file deployments/firewall.bicep \
               --parameters environments/prod/firewall.parameters.json \
+              --mode Incremental      
+              
+      - name: What-If Load Balancing PROD
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az deployment group what-if \
+              --resource-group rg-iac-prod \
+              --template-file deployments/loadBalancing.bicep \
+              --parameters environments/prod/loadBalancing.parameters.json \
               --mode Incremental        
 
       - name: Deploy to PROD
@@ -326,7 +350,19 @@ jobs:
               --template-file deployments/firewall.bicep \
               --parameters environments/prod/firewall.parameters.json \
               --mode Incremental \
-              --name "firewall-$(date +%Y%m%d-%H%M%S)"        
+              --name "firewall-$(date +%Y%m%d-%H%M%S)"
+              
+      - name: Deploy Load Balancing to PROD
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az deployment group create \
+              --resource-group rg-iac-prod \
+              --template-file deployments/loadBalancing.bicep \
+              --parameters environments/prod/loadBalancing.parameters.json \
+              --mode Incremental \
+              --name "lb-$(date +%Y%m%d-%H%M%S)"        
 
       - name: Show PROD Outputs
         continue-on-error: true

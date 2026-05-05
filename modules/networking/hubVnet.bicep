@@ -26,6 +26,9 @@ param bastionSubnetPrefix string = '10.0.2.0/26'
 @description('Shared services subnet prefix')
 param sharedServicesSubnetPrefix string = '10.0.3.0/24'
 
+@description('Application Gateway subnet prefix')
+param appGatewaySubnetPrefix string = '10.0.4.0/24'
+
 var commonTags = {
   environment: environment
   project: 'iac-study'
@@ -71,6 +74,12 @@ resource hubVnet 'Microsoft.Network/virtualNetworks@2023-05-01' = {
           addressPrefix: sharedServicesSubnetPrefix
         }
       }
+      {
+        name: 'snet-appgateway'
+        properties: {
+          addressPrefix: appGatewaySubnetPrefix
+        }
+      }
     ]
   }
 }
@@ -81,3 +90,4 @@ output gatewaySubnetId string = hubVnet.properties.subnets[0].id
 output firewallSubnetId string = hubVnet.properties.subnets[1].id
 output bastionSubnetId string = hubVnet.properties.subnets[2].id
 output sharedServicesSubnetId string = hubVnet.properties.subnets[3].id
+output appGatewaySubnetId string = hubVnet.properties.subnets[4].id
