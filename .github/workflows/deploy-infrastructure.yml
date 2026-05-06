@@ -1,4 +1,4 @@
-name: Deploy Storage Account
+name: Deploy Infrastructure
 
 on:
   push:
@@ -93,11 +93,50 @@ jobs:
               --mode Incremental \
               --no-pretty-print
 
+      - name: What-If DEV NSGs & ASGs
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            echo "========== NSG WHAT-IF =========="
+            az deployment group what-if \
+              --resource-group rg-iac-dev \
+              --template-file deployments/nsg.bicep \
+              --parameters environments/dev/nsg.parameters.json \
+              --mode Incremental \
+              --no-pretty-print         
+
+      - name: What-If DEV Firewall
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            echo "========== FIREWALL WHAT-IF =========="
+            az deployment group what-if \
+              --resource-group rg-iac-dev \
+              --template-file deployments/firewall.bicep \
+              --parameters environments/dev/firewall.parameters.json \
+              --mode Incremental \
+              --no-pretty-print
+              
+      - name: What-If DEV Load Balancing
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            echo "========== LOAD BALANCING WHAT-IF =========="
+            az deployment group what-if \
+              --resource-group rg-iac-dev \
+              --template-file deployments/loadBalancing.bicep \
+              --parameters environments/dev/loadBalancing.parameters.json \
+              --mode Incremental \
+              --no-pretty-print       
+
   # ─────────────────────────────────────────
   # JOB 2: Deploy DEV — only on push to dev
   # ─────────────────────────────────────────
   deploy-dev:
-    name: Deploy to DEV
+    name: Deploy Infrastructure to DEV
     runs-on: ubuntu-latest
     environment: dev
     needs: validate
@@ -118,7 +157,7 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Deploy to DEV
+      - name: Deploy Storage to DEV
         uses: azure/cli@v2
         with:
           azcliversion: latest
@@ -205,7 +244,7 @@ jobs:
   # JOB 3: Deploy PROD — only on PR to main
   # ─────────────────────────────────────────
   deploy-prod:
-    name: Deploy to PROD
+    name: Deploy Infrastructure to PROD
     runs-on: ubuntu-latest
     environment: prod
     needs: validate
@@ -226,7 +265,7 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: What-If PROD
+      - name: What-If Storage PROD
         uses: azure/cli@v2
         with:
           azcliversion: latest
@@ -258,6 +297,17 @@ jobs:
               --template-file deployments/hubSpoke.bicep \
               --parameters environments/prod/hubSpoke.parameters.json \
               --mode Incremental
+
+      - name: What-If NSGs & ASGs PROD
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az deployment group what-if \
+              --resource-group rg-iac-prod \
+              --template-file deployments/nsg.bicep \
+              --parameters environments/prod/nsg.parameters.json \
+              --mode Incremental   
               
       - name: What-If Firewall PROD
         uses: azure/cli@v2
@@ -281,7 +331,7 @@ jobs:
               --parameters environments/prod/loadBalancing.parameters.json \
               --mode Incremental        
 
-      - name: Deploy to PROD
+      - name: Deploy Storage to PROD
         uses: azure/cli@v2
         with:
           azcliversion: latest
@@ -316,17 +366,6 @@ jobs:
               --parameters environments/prod/hubSpoke.parameters.json \
               --mode Incremental \
               --name "hubspoke-$(date +%Y%m%d-%H%M%S)"
-              
-      - name: What-If NSGs & ASGs PROD
-        uses: azure/cli@v2
-        with:
-          azcliversion: latest
-          inlineScript: |
-            az deployment group what-if \
-              --resource-group rg-iac-prod \
-              --template-file deployments/nsg.bicep \
-              --parameters environments/prod/nsg.parameters.json \
-              --mode Incremental
 
       - name: Deploy NSGs & ASGs to PROD
         uses: azure/cli@v2
