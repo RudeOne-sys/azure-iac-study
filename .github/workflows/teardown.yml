@@ -14,10 +14,12 @@ on:
       confirm:
         description: 'Type CONFIRM to proceed'
         required: true
+  schedule:
+    - cron: '0 22 * * *'  # Runs daily at 22:00 UTC (00:00 SAST)
 
 jobs:
   teardown:
-    name: Teardown ${{ github.event.inputs.environment }}
+    name: Teardown ${{ github.event.inputs.environment || 'both' }}
     runs-on: ubuntu-latest
     environment: dev
 
@@ -27,7 +29,7 @@ jobs:
 
     steps:
       - name: Validate confirmation
-        if: github.event.inputs.confirm != 'CONFIRM'
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.confirm != 'CONFIRM'
         run: |
           echo "You must type CONFIRM to proceed with teardown"
           exit 1
@@ -40,7 +42,7 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Teardown DEV
-        if: github.event.inputs.environment == 'dev' || github.event.inputs.environment == 'both'
+        if: github.event_name == 'schedule' || github.event.inputs.environment == 'dev' || github.event.inputs.environment == 'both'
         uses: azure/cli@v2
         with:
           azcliversion: latest
@@ -51,7 +53,7 @@ jobs:
             az group create --name rg-iac-dev --location southafricanorth
 
       - name: Teardown PROD
-        if: github.event.inputs.environment == 'prod' || github.event.inputs.environment == 'both'
+        if: github.event_name == 'schedule' || github.event.inputs.environment == 'prod' || github.event.inputs.environment == 'both'
         uses: azure/cli@v2
         with:
           azcliversion: latest

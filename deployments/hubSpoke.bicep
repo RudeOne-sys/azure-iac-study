@@ -27,6 +27,7 @@ module hubVnet '../modules/networking/hubVnet.bicep' = {
     firewallSubnetPrefix: '10.0.1.0/26'
     bastionSubnetPrefix: '10.0.2.0/26'
     sharedServicesSubnetPrefix: '10.0.3.0/24'
+    appGatewaySubnetPrefix: '10.0.4.0/24'
   }
 }
 
@@ -84,3 +85,4 @@ module hubToProdPeering '../modules/networking/hubPeering.bicep' = {
 output hubVnetId string = hubVnet.outputs.hubVnetId
 output devSpokeVnetId string = devSpoke.outputs.spokeVnetId
 output prodSpokeVnetId string = prodSpoke.outputs.spokeVnetId
+output appGatewaySubnetId string = hubVnet.outputs.appGatewaySubnetId
