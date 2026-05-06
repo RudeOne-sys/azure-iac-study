@@ -8,9 +8,6 @@ param environment string
 @description('Azure region')
 param location string = resourceGroup().location
 
-@description('Hub VNet name - firewall deployed into hub')
-param hubVnetName string
-
 @description('Firewall subnet ID')
 param firewallSubnetId string
 
