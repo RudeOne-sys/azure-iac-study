@@ -33,8 +33,8 @@ az group create --name rg-iac-prod --location southafricanorth
 # PULL REQUEST COMMANDS
 # ─────────────────────────────────────────
 
-# Create PR from dev to main (opens in browser)
-gh pr create --base main --head dev --title "feat: " --body "" --web
+# Create PR from dev to main
+gh pr create --base main --head dev --title "feat: " --body ""
 
 # Merge open PR
 gh pr merge --merge --delete-branch=false
@@ -97,7 +97,24 @@ az deployment group list `
   --output table
 
 # ─────────────────────────────────────────
-# WHAT-IF COMMANDS
+# BICEP TESTING - NO DEPLOYMENT NEEDED
+# ─────────────────────────────────────────
+
+# Lint only - syntax check, no Azure connection needed
+az bicep build --file deployments/storage.bicep
+az bicep build --file deployments/compute.bicep
+az bicep build --file deployments/hubSpoke.bicep
+az bicep build --file deployments/nsg.bicep
+az bicep build --file deployments/firewall.bicep
+az bicep build --file deployments/loadBalancing.bicep
+az bicep build --file deployments/hybridConnectivity.bicep
+az bicep build --file deployments/privateEndpoints.bicep
+
+# Lint all templates at once
+Get-ChildItem deployments/*.bicep | ForEach-Object { az bicep build --file $_.FullName }
+
+# ─────────────────────────────────────────
+# WHAT-IF COMMANDS - VALIDATES WITHOUT DEPLOYING
 # ─────────────────────────────────────────
 
 # Storage What-If DEV
@@ -142,12 +159,94 @@ az deployment group what-if `
   --parameters environments/dev/loadBalancing.parameters.json `
   --mode Incremental
 
+# Hybrid Connectivity What-If DEV
+az deployment group what-if `
+  --resource-group rg-iac-dev `
+  --template-file deployments/hybridConnectivity.bicep `
+  --parameters environments/dev/hybridConnectivity.parameters.json `
+  --mode Incremental
+
+# Private Endpoints What-If DEV
+az deployment group what-if `
+  --resource-group rg-iac-dev `
+  --template-file deployments/privateEndpoints.bicep `
+  --parameters environments/dev/privateEndpoints.parameters.json `
+  --mode Incremental
+
 # Complete mode What-If (shows what WOULD be deleted - use with caution)
 az deployment group what-if `
   --resource-group rg-iac-dev `
   --template-file deployments/storage.bicep `
   --parameters environments/dev/storage.parameters.json `
   --mode Complete
+
+# ─────────────────────────────────────────
+# SINGLE TEMPLATE DEPLOY - TEST IN ISOLATION
+# ─────────────────────────────────────────
+
+# Deploy storage only to dev
+az deployment group create `
+  --resource-group rg-iac-dev `
+  --template-file deployments/storage.bicep `
+  --parameters environments/dev/storage.parameters.json `
+  --mode Incremental `
+  --name "storage-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+
+# Deploy compute only to dev
+az deployment group create `
+  --resource-group rg-iac-dev `
+  --template-file deployments/compute.bicep `
+  --parameters environments/dev/compute.parameters.json `
+  --mode Incremental `
+  --name "compute-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+
+# Deploy hub & spoke only to dev
+az deployment group create `
+  --resource-group rg-iac-dev `
+  --template-file deployments/hubSpoke.bicep `
+  --parameters environments/dev/hubSpoke.parameters.json `
+  --mode Incremental `
+  --name "hubspoke-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+
+# Deploy NSGs only to dev
+az deployment group create `
+  --resource-group rg-iac-dev `
+  --template-file deployments/nsg.bicep `
+  --parameters environments/dev/nsg.parameters.json `
+  --mode Incremental `
+  --name "nsg-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+
+# Deploy firewall only to dev (takes 8-10 mins)
+az deployment group create `
+  --resource-group rg-iac-dev `
+  --template-file deployments/firewall.bicep `
+  --parameters environments/dev/firewall.parameters.json `
+  --mode Incremental `
+  --name "firewall-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+
+# Deploy load balancing only to dev (takes 6-8 mins)
+az deployment group create `
+  --resource-group rg-iac-dev `
+  --template-file deployments/loadBalancing.bicep `
+  --parameters environments/dev/loadBalancing.parameters.json `
+  --mode Incremental `
+  --name "lb-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+
+# Deploy hybrid connectivity only to dev (takes 25-45 mins)
+az deployment group create `
+  --resource-group rg-iac-dev `
+  --template-file deployments/hybridConnectivity.bicep `
+  --parameters environments/dev/hybridConnectivity.parameters.json `
+  --mode Incremental `
+  --name "vpn-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+
+# Deploy private endpoints only to dev
+az deployment group create `
+  --resource-group rg-iac-dev `
+  --template-file deployments/privateEndpoints.bicep `
+  --parameters environments/dev/privateEndpoints.parameters.json `
+  --mode Incremental `
+  --name "pe-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
 
 # ─────────────────────────────────────────
 # FEDERATED CREDENTIAL COMMANDS

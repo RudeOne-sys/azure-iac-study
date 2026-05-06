@@ -5,8 +5,14 @@
     "environment": {
       "value": "dev"
     },
-    "firewallSubnetId": {
-      "value": "/subscriptions/3f219792-08aa-479a-a60a-12b3f5554bfc/resourceGroups/rg-iac-dev/providers/Microsoft.Network/virtualNetworks/vnet-hub-dev/subnets/AzureFirewallSubnet"
+    "hubVnetName": {
+      "value": "vnet-hub-dev"
+    },
+    "onPremPublicIp": {
+      "value": "1.2.3.4"
+    },
+    "vpnSharedKey": {
+      "value": "StudyEnv@2026!"
     }
   }
 }

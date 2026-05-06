@@ -67,7 +67,6 @@ module hubToDevPeering '../modules/networking/hubPeering.bicep' = {
     spokeVnetName: devSpokeVnetName
     spokeVnetId: devSpoke.outputs.spokeVnetId
   }
-  dependsOn: [hubVnet, devSpoke]
 }
 
 // Hub peering back to Prod Spoke
@@ -78,7 +77,6 @@ module hubToProdPeering '../modules/networking/hubPeering.bicep' = {
     spokeVnetName: prodSpokeVnetName
     spokeVnetId: prodSpoke.outputs.spokeVnetId
   }
-  dependsOn: [hubVnet, prodSpoke]
 }
 
 // Outputs

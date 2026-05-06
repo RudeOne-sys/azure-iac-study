@@ -61,7 +61,7 @@ resource spokeToHubPeering 'Microsoft.Network/virtualNetworks/virtualNetworkPeer
     }
     allowVirtualNetworkAccess: true
     allowForwardedTraffic: true    // allows traffic forwarded by hub firewall
-    useRemoteGateways: false       // set to true when VPN Gateway exists in hub
+    useRemoteGateways: true       // allows spoke to use hub VPN Gateway
   }
 }
 
