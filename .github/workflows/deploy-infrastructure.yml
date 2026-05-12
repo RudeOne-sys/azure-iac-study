@@ -55,6 +55,7 @@ jobs:
             az bicep build --file deployments/loadBalancing.bicep
             az bicep build --file deployments/hybridConnectivity.bicep
             az bicep build --file deployments/privateEndpoints.bicep
+            az bicep build --file deployments/dnsMonitoring.bicep
 
       - name: What-If DEV Storage
         uses: azure/cli@v2
@@ -157,6 +158,19 @@ jobs:
               --resource-group rg-iac-dev \
               --template-file deployments/privateEndpoints.bicep \
               --parameters environments/dev/privateEndpoints.parameters.json \
+              --mode Incremental \
+              --no-pretty-print
+              
+      - name: What-If DEV DNS & Monitoring
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            echo "========== DNS & MONITORING WHAT-IF =========="
+            az deployment group what-if \
+              --resource-group rg-iac-dev \
+              --template-file deployments/dnsMonitoring.bicep \
+              --parameters environments/dev/dnsMonitoring.parameters.json \
               --mode Incremental \
               --no-pretty-print        
 
@@ -279,7 +293,19 @@ jobs:
               --template-file deployments/privateEndpoints.bicep \
               --parameters environments/dev/privateEndpoints.parameters.json \
               --mode Incremental \
-              --name "pe-$(date +%Y%m%d-%H%M%S)"        
+              --name "pe-$(date +%Y%m%d-%H%M%S)"
+              
+      - name: Deploy DNS & Monitoring to DEV
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az deployment group create \
+              --resource-group rg-iac-dev \
+              --template-file deployments/dnsMonitoring.bicep \
+              --parameters environments/dev/dnsMonitoring.parameters.json \
+              --mode Incremental \
+              --name "dns-$(date +%Y%m%d-%H%M%S)"        
 
       - name: Show DEV Outputs
         uses: azure/cli@v2
@@ -403,6 +429,17 @@ jobs:
               --resource-group rg-iac-prod \
               --template-file deployments/privateEndpoints.bicep \
               --parameters environments/prod/privateEndpoints.parameters.json \
+              --mode Incremental
+              
+      - name: What-If DNS & Monitoring PROD
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az deployment group what-if \
+              --resource-group rg-iac-prod \
+              --template-file deployments/dnsMonitoring.bicep \
+              --parameters environments/prod/dnsMonitoring.parameters.json \
               --mode Incremental        
 
       - name: Deploy Storage to PROD
@@ -499,7 +536,19 @@ jobs:
               --template-file deployments/privateEndpoints.bicep \
               --parameters environments/prod/privateEndpoints.parameters.json \
               --mode Incremental \
-              --name "pe-$(date +%Y%m%d-%H%M%S)"        
+              --name "pe-$(date +%Y%m%d-%H%M%S)"
+              
+      - name: Deploy DNS & Monitoring to PROD
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az deployment group create \
+              --resource-group rg-iac-prod \
+              --template-file deployments/dnsMonitoring.bicep \
+              --parameters environments/prod/dnsMonitoring.parameters.json \
+              --mode Incremental \
+              --name "dns-$(date +%Y%m%d-%H%M%S)"        
 
       - name: Show PROD Outputs
         continue-on-error: true
